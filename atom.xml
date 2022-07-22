@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Hexo</title>
+  <title>蓝桉的博客</title>
   
   
-  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="http://lanoao.github.io/atom.xml" rel="self"/>
   
-  <link href="http://example.com/"/>
+  <link href="http://lanoao.github.io/"/>
   <updated>2022-07-22T02:35:17.179Z</updated>
-  <id>http://example.com/</id>
+  <id>http://lanoao.github.io/</id>
   
   <author>
-    <name>John Doe</name>
+    <name>蓝桉</name>
     
   </author>
   
@@ -18,8 +18,8 @@
   
   <entry>
     <title>Hello World</title>
-    <link href="http://example.com/2022/07/21/hello-world/"/>
-    <id>http://example.com/2022/07/21/hello-world/</id>
+    <link href="http://lanoao.github.io/2022/07/21/19-35-17/"/>
+    <id>http://lanoao.github.io/2022/07/21/19-35-17/</id>
     <published>2022-07-22T02:35:17.179Z</published>
     <updated>2022-07-22T02:35:17.179Z</updated>
     
