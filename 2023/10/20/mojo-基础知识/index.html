@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png">
 <meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png">
 <meta property="article:published_time" content="2023-10-20T11:50:39.000Z">
-<meta property="article:modified_time" content="2023-10-20T19:08:11.923Z">
+<meta property="article:modified_time" content="2023-10-20T19:09:34.577Z">
 <meta property="article:author" content="蓝桉">
 <meta property="article:tag" content="chrome">
 <meta property="article:tag" content="mojo">
@@ -190,7 +190,8 @@
 <h3 id="Mojo在Chromium中的分层"><a href="#Mojo在Chromium中的分层" class="headerlink" title="Mojo在Chromium中的分层"></a>Mojo在Chromium中的分层</h3><img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png" class="" title="chromium-mojo-layer">
 
 <p>在Chromium中，还有两个基础模块使用Mojo，分别是Services和IPC::Channel。</p>
-<h2 id="Mojo的设计"><a href="#Mojo的设计" class="headerlink" title="Mojo的设计"></a>Mojo的设计</h2><p>在使用Mojo之前，我们来看一下Mojo的设计，这对理解后面的使用至关重要。<br>Mojo支持在多个进程之间相互通信，这一点和其他的IPC有很大不同, 其他大多只支持两个进程之间进行通信。由Mojo组成的这些可以互相通信的进程就形成了一个网络，在这个网络内的任意两个进程都可以进行通信，并且每个进程只能处于一个mojo网络中，在这个网络内每一个进程内部有且只有一个Node，每一个Node都可以提供多个Port，每个Port都对应一种服务，这点类似于TCP&#x2F;IP中的IP地址和端口的关系。一个<code>Node:Port</code>对可以唯一确定一个服务。Node和Node之间通过Channel来实现通信，在不同平台上channel有不同的实现方式，在Linux上是domain socket，在windows上是name pipe，在MAC os上是Mach Port。在Port上一层，Mojo封装了三个“应用层协议”，分别为<code>MessagePipe</code>,<code>DataPipe</code>和<code>SharedBuffer</code>(类似于在TCP上封装了HTTP,SMTP)。整体结构如下图</p>
+<h2 id="Mojo的设计"><a href="#Mojo的设计" class="headerlink" title="Mojo的设计"></a>Mojo的设计</h2><p>在使用Mojo之前，我们来看一下Mojo的设计，这对理解后面的使用至关重要。</p>
+<p>Mojo支持在多个进程之间相互通信，这一点和其他的IPC有很大不同, 其他大多只支持两个进程之间进行通信。由Mojo组成的这些可以互相通信的进程就形成了一个网络，在这个网络内的任意两个进程都可以进行通信，并且每个进程只能处于一个mojo网络中，在这个网络内每一个进程内部有且只有一个Node，每一个Node都可以提供多个Port，每个Port都对应一种服务，这点类似于TCP&#x2F;IP中的IP地址和端口的关系。一个<code>Node:Port</code>对可以唯一确定一个服务。Node和Node之间通过Channel来实现通信，在不同平台上channel有不同的实现方式，在Linux上是domain socket，在windows上是name pipe，在MAC os上是Mach Port。在Port上一层，Mojo封装了三个“应用层协议”，分别为<code>MessagePipe</code>,<code>DataPipe</code>和<code>SharedBuffer</code>(类似于在TCP上封装了HTTP,SMTP)。整体结构如下图</p>
 <img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png" class="" title="mojo_dis">
 <p>上图展示了在两个进程之间使用Mojo的数据流。它有以下几个特点:</p>
 <ol>
