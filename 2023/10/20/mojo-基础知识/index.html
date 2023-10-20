@@ -15,8 +15,10 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_stack.jpg">
 <meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png">
+<meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png">
+<meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png">
 <meta property="article:published_time" content="2023-10-20T11:50:39.000Z">
-<meta property="article:modified_time" content="2023-10-20T18:46:27.337Z">
+<meta property="article:modified_time" content="2023-10-20T19:08:11.923Z">
 <meta property="article:author" content="蓝桉">
 <meta property="article:tag" content="chrome">
 <meta property="article:tag" content="mojo">
@@ -119,7 +121,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Mojo"><span class="toc-number">1.</span> <span class="toc-text">Mojo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.</span> <span class="toc-text">Mojo的分层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mojo%E5%9C%A8Chromium%E4%B8%AD%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.1.</span> <span class="toc-text">Mojo在Chromium中的分层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">Mojo的设计</span></a></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Mojo"><span class="toc-number">1.</span> <span class="toc-text">Mojo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.</span> <span class="toc-text">Mojo的分层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mojo%E5%9C%A8Chromium%E4%B8%AD%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.1.</span> <span class="toc-text">Mojo在Chromium中的分层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">Mojo的设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MessagePipe"><span class="toc-number">1.2.1.</span> <span class="toc-text">MessagePipe</span></a></li></ol></li></ol></li></ol>
       </div>
     
   </span>
@@ -188,7 +190,22 @@
 <h3 id="Mojo在Chromium中的分层"><a href="#Mojo在Chromium中的分层" class="headerlink" title="Mojo在Chromium中的分层"></a>Mojo在Chromium中的分层</h3><img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png" class="" title="chromium-mojo-layer">
 
 <p>在Chromium中，还有两个基础模块使用Mojo，分别是Services和IPC::Channel。</p>
-<h2 id="Mojo的设计"><a href="#Mojo的设计" class="headerlink" title="Mojo的设计"></a>Mojo的设计</h2><p>在使用Mojo之前，我们来看一下Mojo的设计，这对理解后面的使用至关重要。<br>Mojo支持在多个进程之间相互通信，这一点和其他的IPC有很大不同</p>
+<h2 id="Mojo的设计"><a href="#Mojo的设计" class="headerlink" title="Mojo的设计"></a>Mojo的设计</h2><p>在使用Mojo之前，我们来看一下Mojo的设计，这对理解后面的使用至关重要。<br>Mojo支持在多个进程之间相互通信，这一点和其他的IPC有很大不同, 其他大多只支持两个进程之间进行通信。由Mojo组成的这些可以互相通信的进程就形成了一个网络，在这个网络内的任意两个进程都可以进行通信，并且每个进程只能处于一个mojo网络中，在这个网络内每一个进程内部有且只有一个Node，每一个Node都可以提供多个Port，每个Port都对应一种服务，这点类似于TCP&#x2F;IP中的IP地址和端口的关系。一个<code>Node:Port</code>对可以唯一确定一个服务。Node和Node之间通过Channel来实现通信，在不同平台上channel有不同的实现方式，在Linux上是domain socket，在windows上是name pipe，在MAC os上是Mach Port。在Port上一层，Mojo封装了三个“应用层协议”，分别为<code>MessagePipe</code>,<code>DataPipe</code>和<code>SharedBuffer</code>(类似于在TCP上封装了HTTP,SMTP)。整体结构如下图</p>
+<img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png" class="" title="mojo_dis">
+<p>上图展示了在两个进程之间使用Mojo的数据流。它有以下几个特点:</p>
+<ol>
+<li><strong>Channel</strong>: Mojo内部的实现细节，对外不可见，用于包装系统底层的通信通道，在Linux下是domain socket，Windows下是name pipe，在Mac os下是mach port。</li>
+<li><strong>Node</strong>: 每个进程都只有一个Node，它在Mojo中的作用相当于TCP&#x2F;IP中的IP地址，同样是内部实现细节，对外不可见。</li>
+<li><strong>Port</strong>: 每个进程可以有成千上百个Port，它在Mojo中的作用相当于TCP&#x2F;IP的端口，每个Port都会对应一种应用层接口，目前Mojo支持三种应用层接口。</li>
+<li><strong>MessagePipe</strong>: 应用层接口，用于进程间的双向通信，类似于UDP，消息是基于数据包的，底层使用Channel通道。</li>
+<li><strong>DataPipe</strong>: 应用层接口，用于进程间单向块数据传递，类似TCP，消息是基于数据流的，底层使用系统的Shared Memory实现</li>
+<li><strong>SharedBuffer</strong>: 应用层接口，支持双向块数据传递，底层使用系统Shared Memory实现；</li>
+<li><strong>MojoHandle</strong>： 所有的 MessagePipe,DataPipe,SharedBuffer 都使用MojoHandle来包装，有了这个Handle就可以对它们进行读写操作。还可以通过MessagePipe将MojoHandle发送到网络中的任意进程。</li>
+<li><strong>PlatformHandle</strong>: 用来包装系统的句柄或文件描述符，可以将它转换为MojoHandle然后发送到网络中的任意进程。</li>
+</ol>
+<h3 id="MessagePipe"><a href="#MessagePipe" class="headerlink" title="MessagePipe"></a>MessagePipe</h3><p>一个进程中可以有N多个MessagePipe，所有的都共享底层的一条通信通道，就像下图这样</p>
+<img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png" class="" title="MessagePipe">
+<p>Mojo保证同一个MessagePipe中的数据发送和接收顺序一致，但是不保证多个MessagePipe之间的数据的有序</p>
 
   </div>
 </article>
@@ -220,7 +237,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Mojo"><span class="toc-number">1.</span> <span class="toc-text">Mojo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.</span> <span class="toc-text">Mojo的分层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mojo%E5%9C%A8Chromium%E4%B8%AD%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.1.</span> <span class="toc-text">Mojo在Chromium中的分层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">Mojo的设计</span></a></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Mojo"><span class="toc-number">1.</span> <span class="toc-text">Mojo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.</span> <span class="toc-text">Mojo的分层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mojo%E5%9C%A8Chromium%E4%B8%AD%E7%9A%84%E5%88%86%E5%B1%82"><span class="toc-number">1.1.1.</span> <span class="toc-text">Mojo在Chromium中的分层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mojo%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">Mojo的设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MessagePipe"><span class="toc-number">1.2.1.</span> <span class="toc-text">MessagePipe</span></a></li></ol></li></ol></li></ol>
       </div>
     
 
