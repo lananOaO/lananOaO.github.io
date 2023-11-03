@@ -13,17 +13,16 @@
 <meta property="og:site_name" content="蓝桉&#39;s blog">
 <meta property="og:description" content="MojoMojo是一个跨平台的IPC框架，诞生于chromium，用来实现chromium进程内或进程间通信。目前也被用于Chromeos。 Mojo的分层  从图中看Mojo分为4层：  Mojo Core:Mojo的实现层，不能独立使用，由** C++ **实现； Mojo System API(C):Mojo的C API层，它和Mojo Core对接，可以在程序中独立使用； Mojo Sys">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_stack.jpg">
-<meta property="og:image" content="http://example.com/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png">
-<meta property="og:image" content="http://example.com/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png">
-<meta property="og:image" content="http://example.com/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png">
+<meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png">
+<meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png">
+<meta property="og:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png">
 <meta property="article:published_time" content="2023-10-21T02:50:39.000Z">
-<meta property="article:modified_time" content="2023-11-03T12:59:47.746Z">
+<meta property="article:modified_time" content="2023-11-03T13:36:30.684Z">
 <meta property="article:author" content="蓝桉">
 <meta property="article:tag" content="chrome">
 <meta property="article:tag" content="mojo">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_stack.jpg">
+<meta name="twitter:image" content="http://example.com/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png">
     
     
       
@@ -172,7 +171,7 @@
 
   <div class="content e-content" itemprop="articleBody">
     <h1 id="Mojo"><a href="#Mojo" class="headerlink" title="Mojo"></a>Mojo</h1><p>Mojo是一个跨平台的IPC框架，诞生于chromium，用来实现chromium进程内或进程间通信。目前也被用于Chromeos。</p>
-<h2 id="Mojo的分层"><a href="#Mojo的分层" class="headerlink" title="Mojo的分层"></a>Mojo的分层</h2><img src="/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_stack.jpg" class title="This is an image">
+<h2 id="Mojo的分层"><a href="#Mojo的分层" class="headerlink" title="Mojo的分层"></a>Mojo的分层</h2>
 
 <p>从图中看Mojo分为4层：</p>
 <ol>
@@ -187,12 +186,12 @@
 <li><strong>Leagcy Chrome IPC</strong>：已经不推荐使用的Chrome IPC机制，提供IPC::Channer接口以及大量的宏来定义messages类，目前底层也是基于Mojo来实现的，但是上层接口和旧的Chrome IPC保持一致。Chromium中还有很多IPC来使用这种方式，但是不应该在新的服务中使用这种机制。可以在<a target="_blank" rel="noopener" href="https://source.chromium.org/chromium/chromium/src/+/main:ipc/ipc_message_start.h;bpv=0;bpt=0">ipc&#x2F;ipc_message_start.h
 </a>中来查看还有哪些服务使用了这种机制。</li>
 </ol>
-<h3 id="Mojo在Chromium中的分层"><a href="#Mojo在Chromium中的分层" class="headerlink" title="Mojo在Chromium中的分层"></a>Mojo在Chromium中的分层</h3><img src="/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png" class title="chromium-mojo-layer">
+<h3 id="Mojo在Chromium中的分层"><a href="#Mojo在Chromium中的分层" class="headerlink" title="Mojo在Chromium中的分层"></a>Mojo在Chromium中的分层</h3><img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/chromium-mojo-layer.png" class="" title="chromium-mojo-layer">
 
 <p>在Chromium中，还有两个基础模块使用Mojo，分别是Services和IPC::Channel。</p>
 <h2 id="Mojo的设计"><a href="#Mojo的设计" class="headerlink" title="Mojo的设计"></a>Mojo的设计</h2><p>在使用Mojo之前，我们来看一下Mojo的设计，这对理解后面的使用至关重要。</p>
 <p>Mojo支持在多个进程之间相互通信，这一点和其他的IPC有很大不同, 其他大多只支持两个进程之间进行通信。由Mojo组成的这些可以互相通信的进程就形成了一个网络，在这个网络内的任意两个进程都可以进行通信，并且每个进程只能处于一个mojo网络中，在这个网络内每一个进程内部有且只有一个Node，每一个Node都可以提供多个Port，每个Port都对应一种服务，这点类似于TCP&#x2F;IP中的IP地址和端口的关系。一个<code>Node:Port</code>对可以唯一确定一个服务。Node和Node之间通过Channel来实现通信，在不同平台上channel有不同的实现方式，在Linux上是domain socket，在windows上是name pipe，在MAC os上是Mach Port。在Port上一层，Mojo封装了三个“应用层协议”，分别为<code>MessagePipe</code>,<code>DataPipe</code>和<code>SharedBuffer</code>(类似于在TCP上封装了HTTP,SMTP)。整体结构如下图</p>
-<img src="/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png" class title="mojo_dis">
+<img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/mojo_dis.png" class="" title="mojo_dis">
 <p>上图展示了在两个进程之间使用Mojo的数据流。它有以下几个特点:</p>
 <ol>
 <li><strong>Channel</strong>: Mojo内部的实现细节，对外不可见，用于包装系统底层的通信通道，在Linux下是domain socket，Windows下是name pipe，在Mac os下是mach port。</li>
@@ -205,7 +204,7 @@
 <li><strong>PlatformHandle</strong>: 用来包装系统的句柄或文件描述符，可以将它转换为MojoHandle然后发送到网络中的任意进程。</li>
 </ol>
 <h3 id="MessagePipe"><a href="#MessagePipe" class="headerlink" title="MessagePipe"></a>MessagePipe</h3><p>一个进程中可以有N多个MessagePipe，所有的都共享底层的一条通信通道，就像下图这样</p>
-<img src="/.com//10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png" class title="MessagePipe">
+<img src="/2023/10/20/mojo-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/MessagePipe.png" class="" title="MessagePipe">
 <p>Mojo保证同一个MessagePipe中的数据发送和接收顺序一致，但是不保证多个MessagePipe之间的数据的有序</p>
 <h2 id="Mojo的应用"><a href="#Mojo的应用" class="headerlink" title="Mojo的应用"></a>Mojo的应用</h2><p>Mojo不仅可以在Chromium中使用，也可以在任何第三方程序中使用，因为其本身不依赖于Chromium中的业务逻辑部分。不过由于其源码在Chromium中，使用起来可能不是那么方便。</p>
 <p>Mojo提供了不同层次的API，外部可以根据自己的需要选择使用的层次，下面我们简单介绍每种API的使用方法</p>
